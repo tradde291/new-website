@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin CMS - BuyVerifiedAccount</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body { background-color: #0f172a; color: #e2e8f0; font-family: sans-serif; }
+        .input-group { margin-bottom: 1rem; }
+        .input-label { display: block; font-size: 0.875rem; margin-bottom: 0.5rem; color: #94a3b8; }
+        .input-field { width: 100%; background: #1e293b; border: 1px solid #334155; color: white; padding: 0.5rem; rounded: 0.375rem; }
+        .input-field:focus { outline: none; border-color: #38bdf8; }
+        .section-card { background: #1e293b; border: 1px solid #334155; border-radius: 0.5rem; padding: 1.5rem; margin-bottom: 2rem; }
+        .btn-primary { background: #0284c7; color: white; padding: 0.5rem 1rem; rounded: 0.375rem; font-weight: bold; cursor: pointer; }
+        .btn-primary:hover { background: #0ea5e9; }
+        .btn-success { background: #16a34a; color: white; padding: 0.75rem 1.5rem; rounded: 0.375rem; font-weight: bold; cursor: pointer; display: inline-block; }
+        .btn-success:hover { background: #22c55e; }
+    </style>
+</head>
+<body class="min-h-screen pb-20">
+
+    <!-- Auth Overlay -->
+    <div id="auth-overlay" class="fixed inset-0 bg-[#0f172a] z-50 flex flex-col items-center justify-center">
+        <h1 class="text-3xl font-bold mb-6 text-white">Admin Login</h1>
+        <input type="password" id="password-input" placeholder="Enter Password" class="bg-[#1e293b] border border-[#334155] text-white px-4 py-2 rounded mb-4 w-64">
+        <button onclick="checkAuth()" class="btn-primary w-64">Login</button>
+        <p class="mt-4 text-slate-500 text-sm">Default: admin123</p>
+    </div>
+
+    <!-- Main Content -->
+    <div id="cms-content" class="hidden max-w-5xl mx-auto px-4 py-8">
+        <div class="flex items-center justify-between mb-8">
+            <h1 class="text-3xl font-bold text-white flex items-center gap-2">
+                <i data-lucide="settings" class="text-cyan-400"></i> Website CMS
+            </h1>
+            <div class="flex gap-2">
+                <button onclick="switchTab('general')" class="px-4 py-2 rounded bg-[#334155] hover:bg-[#475569] text-white transition" id="tab-btn-general">General Settings</button>
+                <button onclick="switchTab('products')" class="px-4 py-2 rounded bg-[#1e293b] hover:bg-[#475569] text-slate-300 transition" id="tab-btn-products">Products</button>
+                <button onclick="switchTab('reviews')" class="px-4 py-2 rounded bg-[#1e293b] hover:bg-[#475569] text-slate-300 transition" id="tab-btn-reviews">Reviews</button>
+            </div>
+        </div>
+
+        <!-- Tab: General Settings -->
+        <div id="tab-general">
+            <div class="section-card">
+                <h2 class="text-xl font-bold text-white mb-4 border-b border-slate-700 pb-2">Site Identity</h2>
+                
+                <div class="input-group">
+                    <label class="input-label">Page Title (Browser Tab)</label>
+                    <input type="text" id="conf-siteTitle" class="input-field">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Meta Description (SEO)</label>
+                    <textarea id="conf-metaDescription" class="input-field h-24"></textarea>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="input-group">
+                        <label class="input-label">Logo Text</label>
+                        <input type="text" id="conf-logoText" class="input-field">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Logo Badge Icon</label>
+                        <input type="text" id="conf-logoBadge" class="input-field">
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <h2 class="text-xl font-bold text-white mb-4 border-b border-slate-700 pb-2">Home Page Hero Section</h2>
+                
+                <div class="input-group">
+                    <label class="input-label">Hero Title (HTML allowed for colors)</label>
+                    <textarea id="conf-heroTitle" class="input-field h-24 font-mono text-sm"></textarea>
+                    <p class="text-xs text-slate-500 mt-1">Use &lt;span class='text-cyan-400'&gt;text&lt;/span&gt; for colors.</p>
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Hero Subtitle</label>
+                    <textarea id="conf-heroSubtitle" class="input-field h-20"></textarea>
+                </div>
+            </div>
+            
+            <div class="section-card">
+                <h2 class="text-xl font-bold text-white mb-4 border-b border-slate-700 pb-2">Contact Info</h2>
+                <div class="input-group">
+                    <label class="input-label">Support Email</label>
+                    <input type="text" id="conf-supportEmail" class="input-field">
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: Products -->
+        <div id="tab-products" class="hidden">
+            <div class="section-card">
+                <h2 class="text-xl font-bold text-white mb-4">Edit Products</h2>
+                <p class="text-sm text-slate-400 mb-4">Select a product to edit its details.</p>
+                
+                <div class="flex gap-4 h-[600px]">
+                    <!-- Product List -->
+                    <div class="w-1/3 overflow-y-auto border border-slate-700 rounded bg-[#0f172a]">
+                        <div id="product-list" class="divide-y divide-slate-800">
+                            <!-- Populated via JS -->
+                        </div>
+                    </div>
+                    
+                    <!-- Editor -->
+                    <div class="w-2/3 overflow-y-auto p-4 bg-[#0f172a] border border-slate-700 rounded hidden" id="product-editor">
+                        <h3 class="font-bold text-lg text-cyan-400 mb-4" id="edit-prod-header">Editing Product</h3>
+                        
+                        <input type="hidden" id="edit-prod-id">
+                        
+                        <div class="input-group">
+                            <label class="input-label">Title</label>
+                            <input type="text" id="edit-prod-title" class="input-field">
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="input-group">
+                                <label class="input-label">Min Price ($)</label>
+                                <input type="number" id="edit-prod-min" class="input-field" step="0.01">
+                            </div>
+                            <div class="input-group">
+                                <label class="input-label">Max Price ($)</label>
+                                <input type="number" id="edit-prod-max" class="input-field" step="0.01">
+                            </div>
+                        </div>
+                        
+                        <div class="input-group">
+                            <label class="input-label">Short Description</label>
+                            <textarea id="edit-prod-short" class="input-field h-20"></textarea>
+                        </div>
+                        
+                        <div class="input-group">
+                            <label class="input-label">Badge Color (blue, red, green, etc)</label>
+                            <input type="text" id="edit-prod-badge" class="input-field">
+                        </div>
+                        
+                        <div class="input-group">
+                            <label class="input-label">Is On Sale?</label>
+                            <select id="edit-prod-sale" class="input-field">
+                                <option value="true">Yes</option>
+                                <option value="false">No</option>
+                            </select>
+                        </div>
+
+                        <!-- Related Products Selector -->
+                        <div class="input-group border-t border-slate-700 pt-4 mt-4">
+                            <label class="input-label mb-2 font-bold text-cyan-400">Related Products (Manual Selection)</label>
+                            <div class="text-xs text-slate-500 mb-2">Select specific products to show as "Related". If none selected, default category logic applies.</div>
+                            <div id="related-products-container" class="h-48 overflow-y-auto border border-slate-700 rounded p-2 bg-[#0f172a] space-y-1">
+                                <!-- Checkboxes injected via JS -->
+                            </div>
+                        </div>
+
+                        <button onclick="saveCurrentProduct()" class="btn-primary w-full mt-4">Update Product in Memory</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: Reviews -->
+        <div id="tab-reviews" class="hidden">
+            <div class="section-card">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold text-white">Manage Reviews</h2>
+                    <div class="flex gap-2">
+                        <button onclick="importPendingReviews()" class="bg-yellow-600 hover:bg-yellow-700 text-white px-3 py-1 rounded text-sm font-bold transition flex items-center gap-1" title="Import reviews added from site">
+                            <i data-lucide="download" class="w-4 h-4"></i> Import New
+                        </button>
+                        <button onclick="createNewReview()" class="bg-cyan-600 hover:bg-cyan-700 text-white px-3 py-1 rounded text-sm font-bold transition">
+                            + Add Review
+                        </button>
+                    </div>
+                </div>
+                <p class="text-sm text-slate-400 mb-4">Select a review to edit or create a new one.</p>
+                
+                <div class="flex gap-4 h-[600px]">
+                    <!-- Review List -->
+                    <div class="w-1/3 overflow-y-auto border border-slate-700 rounded bg-[#0f172a]">
+                        <div id="review-list" class="divide-y divide-slate-800">
+                            <!-- Populated via JS -->
+                        </div>
+                    </div>
+                    
+                    <!-- Editor -->
+                    <div class="w-2/3 overflow-y-auto p-4 bg-[#0f172a] border border-slate-700 rounded hidden" id="review-editor">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="font-bold text-lg text-cyan-400" id="edit-review-header">Editing Review</h3>
+                            <button onclick="deleteCurrentReview()" class="text-red-400 hover:text-red-300 text-xs underline">Delete Review</button>
+                        </div>
+                        
+                        <input type="hidden" id="edit-review-index">
+
+                        <div class="input-group">
+                            <label class="input-label">Product</label>
+                            <select id="edit-review-product" class="input-field">
+                                <!-- Populated via JS -->
+                            </select>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="input-group">
+                                <label class="input-label">User Name</label>
+                                <input type="text" id="edit-review-user" class="input-field">
+                            </div>
+                            <div class="input-group">
+                                <label class="input-label">Avatar (Initials)</label>
+                                <input type="text" id="edit-review-avatar" class="input-field" maxlength="2">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="input-group">
+                                <label class="input-label">Rating (1-5)</label>
+                                <input type="number" id="edit-review-rating" class="input-field" min="1" max="5" step="0.1">
+                            </div>
+                            <div class="input-group">
+                                <label class="input-label">Date (e.g. "2 days ago")</label>
+                                <input type="text" id="edit-review-date" class="input-field">
+                            </div>
+                        </div>
+                        
+                        <div class="input-group">
+                            <label class="input-label">Is Verified Purchase?</label>
+                            <select id="edit-review-verified" class="input-field">
+                                <option value="true">Yes</option>
+                                <option value="false">No</option>
+                            </select>
+                        </div>
+                        
+                        <div class="input-group">
+                            <label class="input-label">Review Text</label>
+                            <textarea id="edit-review-text" class="input-field h-32"></textarea>
+                        </div>
+
+                        <button onclick="saveCurrentReview()" class="btn-primary w-full mt-4">Update Review in Memory</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Save Actions -->
+        <div class="fixed bottom-0 left-0 w-full bg-[#1e293b] border-t border-slate-700 p-4 flex items-center justify-between z-40 shadow-2xl">
+            <div class="text-sm text-slate-400">
+                Changes are saved in memory until you click save.
+            </div>
+            <button id="save-btn" onclick="saveToDisk()" class="btn-success shadow-lg shadow-green-500/20 flex items-center gap-2">
+                <i data-lucide="save"></i> Save Changes
+            </button>
+        </div>
+
+    </div>
+
+    <!-- Load Data -->
+    <script src="data.js"></script>
+    
+    <script>
+        // --- 1. Auth ---
+        function checkAuth() {
+            const pass = document.getElementById('password-input').value;
+            if(pass === 'admin123') {
+                document.getElementById('auth-overlay').classList.add('hidden');
+                document.getElementById('cms-content').classList.remove('hidden');
+                initCMS();
+            } else {
+                alert('Incorrect password!');
+            }
+        }
+
+        // --- 2. CMS Logic ---
+        // Make a deep copy of data to edit
+        let cmsConfig = {};
+        let cmsProducts = [];
+        let cmsReviews = [];
+
+        function initCMS() {
+            if (typeof siteConfig === 'undefined') {
+                alert('Error: data.js not loaded properly or missing siteConfig.');
+                return;
+            }
+            cmsConfig = JSON.parse(JSON.stringify(siteConfig));
+            cmsProducts = JSON.parse(JSON.stringify(products));
+            cmsReviews = JSON.parse(JSON.stringify(reviewsData));
+            
+            loadGeneralTab();
+            renderProductList();
+            renderReviewList();
+            lucide.createIcons();
+        }
+
+        function switchTab(tab) {
+            document.getElementById('tab-general').classList.add('hidden');
+            document.getElementById('tab-products').classList.add('hidden');
+            document.getElementById('tab-reviews').classList.add('hidden');
+            document.getElementById('tab-btn-general').className = "px-4 py-2 rounded bg-[#1e293b] hover:bg-[#475569] text-slate-300 transition";
+            document.getElementById('tab-btn-products').className = "px-4 py-2 rounded bg-[#1e293b] hover:bg-[#475569] text-slate-300 transition";
+            document.getElementById('tab-btn-reviews').className = "px-4 py-2 rounded bg-[#1e293b] hover:bg-[#475569] text-slate-300 transition";
+
+            document.getElementById(`tab-${tab}`).classList.remove('hidden');
+            document.getElementById(`tab-btn-${tab}`).className = "px-4 py-2 rounded bg-[#334155] hover:bg-[#475569] text-white transition";
+        }
+
+        // --- General Tab ---
+        function loadGeneralTab() {
+            const fields = ['siteTitle', 'metaDescription', 'logoText', 'logoBadge', 'heroTitle', 'heroSubtitle', 'supportEmail'];
+            fields.forEach(f => {
+                const el = document.getElementById(`conf-${f}`);
+                if(el && cmsConfig[f]) el.value = cmsConfig[f];
+            });
+        }
+
+        function saveGeneralToMemory() {
+            const fields = ['siteTitle', 'metaDescription', 'logoText', 'logoBadge', 'heroTitle', 'heroSubtitle', 'supportEmail'];
+            fields.forEach(f => {
+                const el = document.getElementById(`conf-${f}`);
+                if(el) cmsConfig[f] = el.value;
+            });
+        }
+
+        // --- Products Tab ---
+        function renderProductList() {
+            const list = document.getElementById('product-list');
+            list.innerHTML = cmsProducts.map(p => `
+                <div onclick="loadProduct(${p.id})" class="p-3 cursor-pointer hover:bg-[#334155] transition border-l-4 border-transparent hover:border-cyan-400">
+                    <div class="font-bold text-sm text-white truncate">${p.title}</div>
+                    <div class="text-xs text-slate-400">$${p.min_price}</div>
+                </div>
+            `).join('');
+        }
+
+        let currentEditId = null;
+
+        function loadProduct(id) {
+            const p = cmsProducts.find(x => x.id === id);
+            if(!p) return;
+            
+            currentEditId = id;
+            document.getElementById('product-editor').classList.remove('hidden');
+            document.getElementById('edit-prod-header').textContent = "Editing: " + p.title;
+            
+            document.getElementById('edit-prod-title').value = p.title;
+            document.getElementById('edit-prod-min').value = p.min_price;
+            document.getElementById('edit-prod-max').value = p.max_price;
+            document.getElementById('edit-prod-short').value = p.short_description;
+            document.getElementById('edit-prod-badge').value = p.badge_color;
+            document.getElementById('edit-prod-sale').value = p.is_sale.toString();
+
+            // Render Related Products Checkboxes
+            const relatedContainer = document.getElementById('related-products-container');
+            const currentRelated = p.related_ids || [];
+            
+            relatedContainer.innerHTML = cmsProducts
+                .filter(prod => prod.id !== id) // Exclude self
+                .map(prod => {
+                    const isChecked = currentRelated.includes(prod.id) ? 'checked' : '';
+                    return `
+                        <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer hover:bg-slate-800 p-1 rounded">
+                            <input type="checkbox" value="${prod.id}" class="related-checkbox accent-cyan-500" ${isChecked}>
+                            <span class="truncate">${prod.title}</span>
+                        </label>
+                    `;
+                }).join('');
+        }
+
+        function saveCurrentProduct() {
+            if(!currentEditId) return;
+            const pIndex = cmsProducts.findIndex(x => x.id === currentEditId);
+            if(pIndex === -1) return;
+
+            cmsProducts[pIndex].title = document.getElementById('edit-prod-title').value;
+            cmsProducts[pIndex].min_price = parseFloat(document.getElementById('edit-prod-min').value);
+            cmsProducts[pIndex].max_price = parseFloat(document.getElementById('edit-prod-max').value);
+            cmsProducts[pIndex].short_description = document.getElementById('edit-prod-short').value;
+            cmsProducts[pIndex].badge_color = document.getElementById('edit-prod-badge').value;
+            cmsProducts[pIndex].is_sale = document.getElementById('edit-prod-sale').value === 'true';
+
+            // Capture Related IDs
+            const checkboxes = document.querySelectorAll('.related-checkbox:checked');
+            const selectedIds = Array.from(checkboxes).map(cb => parseInt(cb.value));
+            cmsProducts[pIndex].related_ids = selectedIds;
+
+            alert('Product updated in memory! (Don\'t forget to click Save & Download below)');
+            renderProductList();
+        }
+
+        // --- Reviews Tab ---
+        function importPendingReviews() {
+            const pendingStr = localStorage.getItem('pending_reviews');
+            if (!pendingStr) {
+                alert("No new reviews found from the website!");
+                return;
+            }
+            
+            const pending = JSON.parse(pendingStr);
+            if (pending.length === 0) {
+                alert("No new reviews found!");
+                return;
+            }
+
+            if(!confirm(`Found ${pending.length} new reviews from the website. Import them?`)) return;
+
+            // Add to start of cmsReviews
+            cmsReviews.unshift(...pending);
+            
+            // Clear local storage
+            localStorage.removeItem('pending_reviews');
+            
+            alert("Reviews imported successfully! Don't forget to click 'Save Changes' at the bottom.");
+            renderReviewList();
+        }
+
+        function renderReviewList() {
+            const list = document.getElementById('review-list');
+            list.innerHTML = cmsReviews.map((r, index) => {
+                const prod = cmsProducts.find(p => p.id === r.productId);
+                const prodName = prod ? prod.title : 'Unknown Product';
+                return `
+                <div onclick="loadReview(${index})" class="p-3 cursor-pointer hover:bg-[#334155] transition border-l-4 border-transparent hover:border-cyan-400">
+                    <div class="font-bold text-sm text-white truncate">${r.user}</div>
+                    <div class="text-xs text-cyan-400 truncate">${prodName}</div>
+                    <div class="text-xs text-slate-400">${r.rating} Stars - ${r.date}</div>
+                </div>
+            `}).join('');
+        }
+
+        let currentReviewIndex = null;
+
+        function loadReview(index) {
+            const r = cmsReviews[index];
+            if(!r) return;
+            
+            currentReviewIndex = index;
+            document.getElementById('review-editor').classList.remove('hidden');
+            document.getElementById('edit-review-header').textContent = "Editing Review";
+            
+            // Populate Product Dropdown
+            const prodSelect = document.getElementById('edit-review-product');
+            prodSelect.innerHTML = cmsProducts.map(p => 
+                `<option value="${p.id}">${p.title}</option>`
+            ).join('');
+            prodSelect.value = r.productId || 1;
+
+            document.getElementById('edit-review-user').value = r.user;
+            document.getElementById('edit-review-avatar').value = r.avatar;
+            document.getElementById('edit-review-rating').value = r.rating;
+            document.getElementById('edit-review-date').value = r.date;
+            document.getElementById('edit-review-verified').value = r.verified.toString();
+            document.getElementById('edit-review-text').value = r.text;
+        }
+
+        function saveCurrentReview() {
+            if(currentReviewIndex === null) return;
+            
+            cmsReviews[currentReviewIndex] = {
+                productId: parseInt(document.getElementById('edit-review-product').value),
+                user: document.getElementById('edit-review-user').value,
+                avatar: document.getElementById('edit-review-avatar').value,
+                rating: parseFloat(document.getElementById('edit-review-rating').value),
+                date: document.getElementById('edit-review-date').value,
+                verified: document.getElementById('edit-review-verified').value === 'true',
+                text: document.getElementById('edit-review-text').value
+            };
+
+            alert('Review updated in memory! (Don\'t forget to click Save below)');
+            renderReviewList();
+        }
+
+        function createNewReview() {
+            const newReview = {
+                productId: 1,
+                user: "New User",
+                avatar: "NU",
+                rating: 5,
+                date: "Just now",
+                verified: true,
+                text: "Write review here..."
+            };
+            cmsReviews.unshift(newReview); // Add to top
+            renderReviewList();
+            loadReview(0); // Load the new review
+        }
+
+        function deleteCurrentReview() {
+            if(currentReviewIndex === null) return;
+            if(!confirm('Are you sure you want to delete this review?')) return;
+            
+            cmsReviews.splice(currentReviewIndex, 1);
+            document.getElementById('review-editor').classList.add('hidden');
+            currentReviewIndex = null;
+            renderReviewList();
+        }
+
+        // --- Generate & Save ---
+        async function saveToDisk() {
+            // 1. Capture latest general settings
+            saveGeneralToMemory();
+
+            // 2. Construct file content
+            let content = `// data.js\n\n`;
+            content += `// --- Site Configuration (CMS Data) ---\n`;
+            content += `const siteConfig = ${JSON.stringify(cmsConfig, null, 4)};\n\n`;
+            content += `// Categories (Header)\n`;
+            content += `const categories = ${JSON.stringify(categories, null, 4)};\n\n`;
+            content += `// Sample Reviews Data\n`;
+            content += `const reviewsData = ${JSON.stringify(cmsReviews, null, 4)};\n\n`;
+            content += `// All 41 Products Data\n`;
+            content += `const products = ${JSON.stringify(cmsProducts, null, 4)};\n\n`;
+            
+            content += `
+// --- MODIFIED: Always return 5 Stars ---
+function renderStars(rating) {
+    let starsHtml = '';
+    // We ignore the actual rating and force 5 stars (fill-yellow-400)
+    for (let i = 0; i < 5; i++) {
+        starsHtml += \`<i data-lucide="star" class="w-3 h-3 fill-yellow-400 text-yellow-400"></i>\`;
+    }
+    return starsHtml;
+}
+
+// Helper: Gradients Map
+const gradients = {
+    blue: 'from-blue-500 to-blue-600',
+    red: 'from-red-500 to-red-600',
+    pink: 'from-pink-500 to-pink-600',
+    green: 'from-green-500 to-green-600',
+    purple: 'from-purple-500 to-purple-600',
+    orange: 'from-orange-500 to-orange-600',
+    cyan: 'from-cyan-500 to-cyan-600',
+    indigo: 'from-indigo-500 to-indigo-600',
+    gray: 'from-gray-600 to-gray-700'
+};
+
+// Common Header Logic
+function initHeader() {
+    // Apply Site Config to DOM if elements exist
+    if (typeof siteConfig !== 'undefined') {
+        // Page Title & Meta
+        document.title = siteConfig.siteTitle;
+        const metaDesc = document.querySelector('meta[name="description"]');
+        if (metaDesc) metaDesc.setAttribute('content', siteConfig.metaDescription);
+
+        // Logo Text
+        const logoEls = document.querySelectorAll('.logo-text');
+        logoEls.forEach(el => {
+            el.innerHTML = siteConfig.logoText;
+        });
+        const logoBadgeEls = document.querySelectorAll('.logo-badge');
+        logoBadgeEls.forEach(el => {
+            el.innerHTML = siteConfig.logoBadge;
+        });
+
+        // Hero Section (if exists on page)
+        const heroTitleEl = document.getElementById('hero-title');
+        if (heroTitleEl) heroTitleEl.innerHTML = siteConfig.heroTitle;
+
+        const heroSubtitleEl = document.getElementById('hero-subtitle');
+        if (heroSubtitleEl) heroSubtitleEl.innerHTML = siteConfig.heroSubtitle;
+    }
+
+    const mobileBtn = document.getElementById('mobile-menu-btn');
+    const mobileMenu = document.getElementById('mobile-menu');
+    
+    if(mobileBtn && mobileMenu) {
+        mobileBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+    }
+    
+    // Mobile Menu Items Injection
+    const mobileNavItems = document.getElementById('mobile-nav-items');
+    if (mobileNavItems && categories) {
+        mobileNavItems.innerHTML = ''; 
+        categories.forEach(cat => {
+            const catDiv = document.createElement('div');
+            catDiv.className = 'py-2 border-b border-gray-50';
+            const itemsLinks = cat.items.map(itemTitle => {
+                const product = products.find(p => p.title === itemTitle);
+                const linkId = product ? product.id : '#';
+                return \`<a href="product.html?id=\${linkId}\" class="block pl-4 py-1 text-sm text-gray-500 hover:text-blue-600">\${itemTitle}</a>\`;
+            }).join('');
+            catDiv.innerHTML = \`<div class="font-medium text-gray-900 px-2 mb-1">\${cat.name}</div><div class="space-y-1">\${itemsLinks}</div>\`;
+            mobileNavItems.appendChild(catDiv);
+        });
+    }
+    if(typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+}
+`;
+
+            // 3. Try to save via server (Localhost mode) or Fallback (Static/GitHub mode)
+            const btn = document.getElementById('save-btn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Processing...';
+
+            try {
+                // Attempt to fetch only if we are likely on localhost with our server running
+                const response = await fetch('/api/save', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: content
+                });
+
+                if (response.ok) {
+                    alert('✅ Saved Successfully! The data.js file has been updated on your local server.');
+                } else {
+                    throw new Error('Server responded with ' + response.status);
+                }
+            } catch (err) {
+                console.warn("Server save failed, switching to manual download mode:", err);
+                
+                // This path is expected for GitHub Pages / Static Hosting
+                const blob = new Blob([content], { type: 'text/javascript' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'data.js';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+
+                alert('⚠️ GitHub / Static Hosting Mode Detected\n\nSince GitHub Pages is a static host, it cannot save files directly to the server.\n\n1. A new "data.js" file has been downloaded to your computer.\n2. Please replace the existing "data.js" in your project folder with this new file.\n3. Commit and Push these changes to GitHub to update your live website.\n\nThis is the standard way to update content on static hosting.');
+            } finally {
+                btn.innerHTML = originalText;
+                lucide.createIcons();
+            }
+        }
+    </script>
+</body>
+</html>
